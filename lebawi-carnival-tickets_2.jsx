@@ -93,10 +93,14 @@ function Buy({ go, add, notify, data }) {
   const [done, setDone] = useState(null);
   const ref = useRef(null);
 
+  const TICKET_CAP = 1000;
+  const soldTickets = data.tickets.length;
+
   const submit = () => {
     if (!f.name.trim() || !f.phone.trim()) return notify("Please fill in name and phone", "error");
     if (!f.paymentMethod) return notify("Select a payment method", "error");
     if (!f.paymentScreenshot) return notify("Upload payment screenshot", "error");
+    if (soldTickets + f.quantity > TICKET_CAP) return notify(soldTickets >= TICKET_CAP ? "Sorry, tickets are sold out!" : `Only ${TICKET_CAP - soldTickets} tickets remaining`, "error");
     const groupId = `g-${Date.now()}`;
     const base = { name: f.name, phone: f.phone, email: f.email, paymentMethod: f.paymentMethod, paymentScreenshot: f.paymentScreenshot, screenshotName: f.screenshotName, status: "pending", createdAt: new Date().toISOString(), groupId, groupTotal: f.quantity, quantity: 1, totalAmount: 700 };
     const newTickets = Array.from({ length: f.quantity }, (_, i) => ({ ...base, id: data.nextId + i, ticketIndex: i + 1 }));
