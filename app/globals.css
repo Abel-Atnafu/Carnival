@@ -1,0 +1,150 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #0A0712;
+  --foreground: #E8E4F0;
+  --card: #1A1528;
+  --card-foreground: #E8E4F0;
+  --popover: #1A1528;
+  --popover-foreground: #E8E4F0;
+  --primary: #6B3FA0;
+  --primary-foreground: #FFFFFF;
+  --secondary: #130F1F;
+  --secondary-foreground: #E8E4F0;
+  --muted: #130F1F;
+  --muted-foreground: #9B93AD;
+  --accent: #C9A84C;
+  --accent-foreground: #0A0712;
+  --destructive: #E85454;
+  --destructive-foreground: #FFFFFF;
+  --border: #2A2240;
+  --input: #2A2240;
+  --ring: #C9A84C;
+  --radius: 0.625rem;
+  
+  /* Custom carnival colors */
+  --carnival-bg: #0A0712;
+  --carnival-surface: #130F1F;
+  --carnival-card: #1A1528;
+  --carnival-border: #2A2240;
+  --carnival-border-light: #3D3260;
+  --carnival-purple: #6B3FA0;
+  --carnival-purple-dark: #4A2670;
+  --carnival-gold: #C9A84C;
+  --carnival-gold-bg: rgba(201,168,76,0.12);
+  --carnival-text: #E8E4F0;
+  --carnival-text-muted: #9B93AD;
+  --carnival-text-dim: #6B6280;
+  --carnival-white: #FFFFFF;
+  --carnival-green: #3DD68C;
+  --carnival-green-bg: rgba(61,214,140,0.10);
+  --carnival-red: #E85454;
+  --carnival-red-bg: rgba(232,84,84,0.10);
+  --carnival-yellow: #E8B84C;
+  --carnival-yellow-bg: rgba(232,184,76,0.10);
+}
+
+@theme inline {
+  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
+  --font-serif: 'Cormorant Garamond', 'Georgia', serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-fade-in-slow {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Button hover effects */
+.btn-hover {
+  transition: all 0.2s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.btn-hover:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-ticket,
+  #printable-ticket * {
+    visibility: visible;
+  }
+  #printable-ticket {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--carnival-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--carnival-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--carnival-border-light);
+}
