@@ -32,6 +32,11 @@ export default function HomePage() {
         {/* Year */}
         <p className="font-serif text-lg text-[#9B93AD] tracking-[0.5em]">2026</p>
         
+        {/* Collaboration Badge */}
+        <p className="text-[10px] font-semibold tracking-[2px] text-[#9B93AD] uppercase">
+          LIA <span className="text-[#C9A84C]">×</span> Baller&apos;s League
+        </p>
+        
         {/* Description */}
         <p className="text-[#6B6280] text-sm text-center max-w-[260px] leading-relaxed">
           An evening of celebration, community, and unforgettable memories
@@ -60,16 +65,10 @@ export default function HomePage() {
           </Link>
         </div>
         
-        {/* Footer links */}
-        <div className="flex gap-4 mt-2 items-center">
-          <Link href="/admin" className="text-xs text-[#6B6280] font-medium hover:text-[#9B93AD] transition-colors">
-            Admin Dashboard
-          </Link>
-          <span className="text-[#3D3260]">|</span>
-          <Link href="/scan" className="text-xs text-[#6B6280] font-medium hover:text-[#9B93AD] transition-colors">
-            Gate Scanner
-          </Link>
-        </div>
+        {/* Footer link */}
+        <Link href="/scan" className="text-xs text-[#6B6280] font-medium hover:text-[#9B93AD] transition-colors mt-2">
+          Gate Scanner
+        </Link>
       </div>
     </div>
   )
