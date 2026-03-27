@@ -166,6 +166,7 @@ function MyTicket({ go, data, notify }) {
   const [tks, setTks] = useState([]);
   const find = () => {
     const v = q.trim().toLowerCase();
+    if (!v) return notify("Please enter a name, phone, or ticket code", "error");
     const results = data.tickets.filter(t => t.phone.includes(v) || t.name.toLowerCase().includes(v) || genCode(t.id).toLowerCase().includes(v));
     results.length > 0 ? setTks(results) : notify("No ticket found", "error");
   };
