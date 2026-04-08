@@ -158,6 +158,8 @@ export async function markTicketAsUsed(
 
   if (!existingTicket) {
     return { ticket: null, error: "Ticket not found" }
+  }
+
   if (existingTicket.status === "used") {
     return { ticket: null, error: "Ticket has already been used" }
   }
