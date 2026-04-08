@@ -75,7 +75,7 @@ export default function BuyPage() {
 
       if (tickets && tickets.length > 0) {
         setCompletedTickets(tickets)
-        toast.success(${ tickets.length } ticket${ tickets.length > 1 ? 's' : '' } reserved! Awaiting verification.)
+        toast.success(`${tickets.length} ticket${tickets.length > 1 ? 's' : ''} reserved! Awaiting verification.`)
       }
     })
   }
@@ -91,7 +91,7 @@ export default function BuyPage() {
           <h2 className="font-serif text-xl font-bold text-center text-white mb-1.5">Reservation Complete</h2>
           <p className="text-[#6B6280] text-sm text-center mb-5 leading-relaxed">
             {completedTickets.length > 1
-              ? Your ${completedTickets.length} tickets are reserved. Each ticket has a unique code. An admin will verify your payment shortly.
+              ? `Your ${completedTickets.length} tickets are reserved. Each ticket has a unique code. An admin will verify your payment shortly.`
             : 'Your ticket is reserved. An admin will verify your payment shortly.'
             }
           </p>
