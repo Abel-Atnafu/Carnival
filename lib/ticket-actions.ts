@@ -1,4 +1,4 @@
-[3 / 26 / 2026 11:02 AM] Abel: "use server"
+'use server'
 
 import { createClient } from "@/lib/supabase/server"
 
@@ -158,8 +158,7 @@ export async function markTicketAsUsed(
 
   if (!existingTicket) {
     return { ticket: null, error: "Ticket not found" }
-  }
-  [3 / 26 / 2026 11:02 AM] Abel: if (existingTicket.status === "used") {
+  if (existingTicket.status === "used") {
     return { ticket: null, error: "Ticket has already been used" }
   }
 

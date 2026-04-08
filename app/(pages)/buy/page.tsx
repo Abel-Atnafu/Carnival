@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -92,7 +94,7 @@ export default function BuyPage() {
           <p className="text-[#6B6280] text-sm text-center mb-5 leading-relaxed">
             {completedTickets.length > 1
               ? `Your ${completedTickets.length} tickets are reserved. Each ticket has a unique code. An admin will verify your payment shortly.`
-            : 'Your ticket is reserved. An admin will verify your payment shortly.'
+              : 'Your ticket is reserved. An admin will verify your payment shortly.'
             }
           </p>
 
@@ -101,14 +103,14 @@ export default function BuyPage() {
               <div className="mb-3">
                 <div className="flex items-center justify-between">
                   <div className="font-serif font-bold text-white tracking-wide">
-                    {completedTickets.length > 1 ? TICKET ${index + 1} of ${completedTickets.length} : 'LEBAWI CARNIVAL'}
-                    [3/26/2026 10:39 AM] Abel: </div>
+                    {completedTickets.length > 1 ? `TICKET ${index + 1} of ${completedTickets.length}` : 'LEBAWI CARNIVAL'}
+                  </div>
                 </div>
                 <div className="font-mono text-xs text-[#C9A84C] mt-0.5">{ticket.code}</div>
               </div>
               <div className="h-px bg-[#2A2240] mb-1" />
               <InfoRow label="Name" value={ticket.name} />
-              <InfoRow label="Amount" value={${ticket.total_amount} Birr} />
+              <InfoRow label="Amount" value={`${ticket.total_amount} Birr`} />
               <InfoRow label="Payment" value={ticket.payment_method === 'cbe' ? 'CBE' : 'Telebirr'} />
               <InfoRow label="Status" value="Awaiting Verification" badge="pending" />
             </div>
@@ -184,32 +186,32 @@ export default function BuyPage() {
           <div className="flex items-center justify-center gap-5">
             <button
               onClick={() => setForm(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
-[3/26/2026 10:39 AM] Abel: className="w-11 h-11 rounded-md bg-[#130F1F] text-[#C9A84C] text-xl font-bold flex items-center justify-center border border-[#2A2240] hover:bg-[#1A1528] transition-colors"
+              className="w-11 h-11 rounded-md bg-[#130F1F] text-[#C9A84C] text-xl font-bold flex items-center justify-center border border-[#2A2240] hover:bg-[#1A1528] transition-colors"
             >
-            <Minus className="w-5 h-5" />
-          </button>
-          <span className="font-serif text-2xl font-bold text-white min-w-9 text-center">{form.quantity}</span>
-          <button
-            onClick={() => setForm(prev => ({ ...prev, quantity: Math.min(10, prev.quantity + 1) }))}
-            className="w-11 h-11 rounded-md bg-[#130F1F] text-[#C9A84C] text-xl font-bold flex items-center justify-center border border-[#2A2240] hover:bg-[#1A1528] transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-      </div>
-    </Field>
-        
-        {/* Total */ }
-  <div className="flex justify-between items-center py-3.5 border-t border-b border-[#2A2240] mb-5">
-    <span className="text-xs font-semibold text-[#9B93AD] uppercase tracking-wide">Total</span>
-    <span className="font-serif text-2xl font-bold text-[#C9A84C]">{totalAmount} Birr</span>
-  </div>
+              <Minus className="w-5 h-5" />
+            </button>
+            <span className="font-serif text-2xl font-bold text-white min-w-9 text-center">{form.quantity}</span>
+            <button
+              onClick={() => setForm(prev => ({ ...prev, quantity: Math.min(10, prev.quantity + 1) }))}
+              className="w-11 h-11 rounded-md bg-[#130F1F] text-[#C9A84C] text-xl font-bold flex items-center justify-center border border-[#2A2240] hover:bg-[#1A1528] transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
+        </Field>
 
-  {/* Payment Section */ }
+        {/* Total */}
+        <div className="flex justify-between items-center py-3.5 border-t border-b border-[#2A2240] mb-5">
+          <span className="text-xs font-semibold text-[#9B93AD] uppercase tracking-wide">Total</span>
+          <span className="font-serif text-2xl font-bold text-[#C9A84C]">{totalAmount} Birr</span>
+        </div>
+
+        {/* Payment Section */}
         <SectionHeader>Payment</SectionHeader>
         <p className="text-sm text-[#9B93AD] leading-relaxed mb-3.5">
           Transfer <strong className="text-[#C9A84C]">{totalAmount} Birr</strong> to one of the accounts below, then upload your confirmation screenshot.
         </p>
-        
+
         <PaymentOption
           selected={form.paymentMethod === 'cbe'}
           onClick={() => setForm(prev => ({ ...prev, paymentMethod: 'cbe' }))}
@@ -218,7 +220,7 @@ export default function BuyPage() {
           holder="Name: — (to be updated)"
           icon="🏦"
         />
-        
+
         <PaymentOption
           selected={form.paymentMethod === 'telebirr'}
           onClick={() => setForm(prev => ({ ...prev, paymentMethod: 'telebirr' }))}
@@ -228,7 +230,7 @@ export default function BuyPage() {
           icon="📱"
         />
 
-  {/* Upload Section */ }
+        {/* Upload Section */}
         <SectionHeader>Proof of Payment</SectionHeader>
         <input
           type="file"
@@ -238,57 +240,55 @@ export default function BuyPage() {
           onChange={handleFileChange}
         />
 
-  {
-    !form.paymentScreenshot ? (
-      <div
-        onClick={() => fileRef.current?.click()}
-        className="border-2 border-dashed border-[#3D3260] rounded-lg py-6 px-4 text-center cursor-pointer bg-[#130F1F] mb-4 hover:border-[#C9A84C]/50 transition-colors"
-      >
-        <Upload className="w-7 h-7 mx-auto mb-1.5 text-[#6B6280]" />
-        <div className="text-sm font-semibold text-[#9B93AD]">Tap to upload screenshot</div>
-        <div className="text-xs text-[#6B6280] mt-0.5">PNG, JPG — max 5MB</div>
-      </div>
-    ) : (
-      <div className="flex items-center gap-3 bg-[#130F1F] rounded-lg p-3 border-[1.5px] border-[#C9A84C]/20 mb-4">
-        <img
-          src={form.paymentScreenshot}
-          alt="proof"
-          className="w-14 h-14 object-cover rounded-md border border-[#2A2240]"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold text-[#E8E4F0] truncate max-w-[160px] mb-1">
-            {form.screenshotName}
-          </div>
-          <button
-            onClick={() => {
-              setForm(prev => ({ ...prev, paymentScreenshot: null, screenshotName: '' }))
-              if (fileRef.current) fileRef.current.value = ''
-            }}
-            className="text-xs font-semibold text-[#E85454]"
+        {!form.paymentScreenshot ? (
+          <div
+            onClick={() => fileRef.current?.click()}
+            className="border-2 border-dashed border-[#3D3260] rounded-lg py-6 px-4 text-center cursor-pointer bg-[#130F1F] mb-4 hover:border-[#C9A84C]/50 transition-colors"
           >
-            Remove
-            [3/26/2026 10:39 AM] Abel: </button>
-        </div>
-      </div>
-    )
-  }
+            <Upload className="w-7 h-7 mx-auto mb-1.5 text-[#6B6280]" />
+            <div className="text-sm font-semibold text-[#9B93AD]">Tap to upload screenshot</div>
+            <div className="text-xs text-[#6B6280] mt-0.5">PNG, JPG — max 5MB</div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 bg-[#130F1F] rounded-lg p-3 border-[1.5px] border-[#C9A84C]/20 mb-4">
+            <img
+              src={form.paymentScreenshot}
+              alt="proof"
+              className="w-14 h-14 object-cover rounded-md border border-[#2A2240]"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-[#E8E4F0] truncate max-w-[160px] mb-1">
+                {form.screenshotName}
+              </div>
+              <button
+                onClick={() => {
+                  setForm(prev => ({ ...prev, paymentScreenshot: null, screenshotName: '' }))
+                  if (fileRef.current) fileRef.current.value = ''
+                }}
+                className="text-xs font-semibold text-[#E85454]"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        )}
 
-  <button
-    onClick={handleSubmit}
-    disabled={isPending}
-    className="btn-hover w-full bg-gradient-to-br from-[#4A2670] to-[#6B3FA0] text-white py-3.5 rounded-md text-sm font-bold shadow-[0_4px_20px_rgba(107,63,160,0.25)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-  >
-    {isPending ? (
-      <>
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Processing...
-      </>
-    ) : (
-      'Submit & Reserve Ticket'
-    )}
-  </button>
-      </div >
-    </div >
+        <button
+          onClick={handleSubmit}
+          disabled={isPending}
+          className="btn-hover w-full bg-gradient-to-br from-[#4A2670] to-[#6B3FA0] text-white py-3.5 rounded-md text-sm font-bold shadow-[0_4px_20px_rgba(107,63,160,0.25)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Submit & Reserve Ticket'
+          )}
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -328,15 +328,14 @@ function PaymentOption({ selected, onClick, name, account, holder, icon }: {
   return (
     <div
       onClick={onClick}
-      className={flex justify-between items-center bg-[#130F1F]rounded - lg p - 3.5 mb - 2 border - [1.5px] cursor - pointer transition - all ${
-    selected ? 'border-[#C9A84C] bg-[rgba(201,168,76,0.12)]' : 'border-[#2A2240]'
-  }
-}
+      className={`flex justify-between items-center bg-[#130F1F] rounded-lg p-3.5 mb-2 border-[1.5px] cursor-pointer transition-all ${
+        selected ? 'border-[#C9A84C] bg-[rgba(201,168,76,0.12)]' : 'border-[#2A2240]'
+      }`}
     >
       <div className="flex items-center gap-3">
-        <div className={w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
           selected ? 'border-[#C9A84C]' : 'border-[#3D3260]'
-        }}>
+        }`}>
           {selected && <div className="w-2.5 h-2.5 rounded-full bg-[#C9A84C]" />}
         </div>
         <div>
@@ -344,9 +343,9 @@ function PaymentOption({ selected, onClick, name, account, holder, icon }: {
           <div className="text-xs font-semibold font-mono text-[#C9A84C]">{account}</div>
           <div className="text-[11px] text-[#6B6280]">{holder}</div>
         </div>
-      </div >
-  <span className="text-2xl opacity-40">{icon}</span>
-    </div >
+      </div>
+      <span className="text-2xl opacity-40">{icon}</span>
+    </div>
   )
 }
 
@@ -355,17 +354,16 @@ function InfoRow({ label, value, badge }: { label: string; value: string; badge?
     <div className="flex justify-between items-center py-2 border-b border-[#2A2240] last:border-0">
       <span className="text-[13px] text-[#9B93AD]">{label}</span>
       {badge ? (
-        <span className={px - 2 py-0.5 rounded text-[11px] font-bold uppercase tracking-tight ${
-        badge === 'confirmed'
-          ? 'bg-[rgba(61,214,140,0.10)] text-[#3DD68C]'
-          : 'bg-[rgba(232,184,76,0.10)] text-[#E8B84C]'
-      }}>
-      {value}
-    </span>
-  ) : (
-    <span className="text-sm font-semibold text-[#E8E4F0]">{value}</span>
-  )
-}
-    </div >
+        <span className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-tight ${
+          badge === 'confirmed'
+            ? 'bg-[rgba(61,214,140,0.10)] text-[#3DD68C]'
+            : 'bg-[rgba(232,184,76,0.10)] text-[#E8B84C]'
+        }`}>
+          {value}
+        </span>
+      ) : (
+        <span className="text-sm font-semibold text-[#E8E4F0]">{value}</span>
+      )}
+    </div>
   )
 }
