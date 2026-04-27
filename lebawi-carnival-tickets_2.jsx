@@ -42,7 +42,7 @@ export default function App() {
       {notif && <div style={{ ...s.notif, background: notif.t === "success" ? C.grn : C.red, color: C.bg }}>{notif.m}</div>}
       {pg === "home" && <Home go={setPg} />}
       {pg === "buy" && <Buy go={setPg} add={addTickets} notify={notify} data={data} />}
-      {pg === "admin" && <Admin go={setPg} data={data} confirm={confirmPay} auth={auth} setAuth={setAuth} notify={notify} />}
+      {pg === "admin" && <Admin go={setPg} data={data} confirm={confirmPay} auth={auth} setAuth={setAuth} notify={notify} validate={validate} />}
       {pg === "scan" && <Scan go={setPg} validate={validate} notify={notify} />}
       {pg === "myticket" && <MyTicket go={setPg} data={data} notify={notify} />}
     </div>
@@ -205,9 +205,11 @@ function MyTicket({ go, data, notify }) {
   );
 }
 
-function Admin({ go, data, confirm, auth, setAuth, notify }) {
+function Admin({ go, data, confirm, auth, setAuth, notify, validate }) {
   const [pin, setPin] = useState("");
   const [fl, setFl] = useState("all");
+  const [tab, setTab] = useState("tickets");
+  const [scanRes, setScanRes] = useState(null);
   const PIN = "9211";
   if (!auth) return (
     <div style={s.pg}><Nav go={go} title="Admin" /><div style={s.card}>
@@ -226,26 +228,110 @@ function Admin({ go, data, confirm, auth, setAuth, notify }) {
   return (
     <div style={s.pg}><Nav go={go} title="Dashboard" />
       <div style={s.statsR}><Stat value={qty} label="Tickets" /><Stat value={conf.length} label="Confirmed" color={C.grn} /><Stat value={pend.length} label="Pending" color={C.yel} /><Stat value={rev.toLocaleString()} label="Birr" color={C.gold} /></div>
-      <div style={s.flR}>{["all", "confirmed", "pending", "scanned"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => setFl(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {list.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No tickets yet</div> : list.slice().reverse().map(t => (
-          <div key={t.id} style={s.aCard}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-              <div><div style={{ fontWeight: 700, fontSize: 15, color: C.tx }}>{t.name}</div><div style={{ fontSize: 12, fontFamily: "monospace", color: C.gold, marginTop: 2 }}>{genCode(t.id)}</div></div>
-              <span style={{ ...s.badge, ...(t.status === "confirmed" ? s.bGrn : s.bYel) }}>{t.status}</span>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 13, color: C.txM, marginBottom: 8 }}>
-              <span>📱 {t.phone}</span>
-              <span>🎟 {t.groupTotal > 1 ? `${t.ticketIndex}/${t.groupTotal}` : "×1"}</span>
-              <span>💰 {t.groupTotal > 1 ? `${t.groupTotal * 700} Birr total` : `${t.totalAmount} Birr`}</span>
-              {t.paymentMethod && <span>💳 {t.paymentMethod === "cbe" ? "CBE" : "Telebirr"}</span>}
-              {t.scannedAt && <span>✅ Scanned</span>}
-            </div>
-            {t.paymentScreenshot && <div style={{ marginBottom: 10 }}><div style={{ fontSize: 11, color: C.txD, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Payment Proof</div><img src={t.paymentScreenshot} alt="proof" style={{ width: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 8, border: `1px solid ${C.bd}`, background: C.bg }} /></div>}
-            {t.status === "pending" && <button style={s.confB} onClick={() => { confirm(t.id, t.groupId); notify(`Confirmed: ${t.name}${t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}`); }}>Confirm Payment ✓{t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}</button>}
+      <div style={s.flR}>{["tickets", "scan"].map(t => <button key={t} style={{ ...s.flB, ...(tab === t ? s.flA : {}) }} onClick={() => { setTab(t); setScanRes(null); }}>{"tickets" === t ? "📋 Tickets" : "📷 Scan"}</button>)}</div>
+      {tab === "tickets" ? (
+        <>
+          <div style={s.flR}>{["all", "confirmed", "pending", "scanned"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => setFl(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {list.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No tickets yet</div> : list.slice().reverse().map(t => (
+              <div key={t.id} style={s.aCard}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                  <div><div style={{ fontWeight: 700, fontSize: 15, color: C.tx }}>{t.name}</div><div style={{ fontSize: 12, fontFamily: "monospace", color: C.gold, marginTop: 2 }}>{genCode(t.id)}</div></div>
+                  <span style={{ ...s.badge, ...(t.status === "confirmed" ? s.bGrn : s.bYel) }}>{t.status}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 13, color: C.txM, marginBottom: 8 }}>
+                  <span>📱 {t.phone}</span>
+                  <span>🎟 {t.groupTotal > 1 ? `${t.ticketIndex}/${t.groupTotal}` : "×1"}</span>
+                  <span>💰 {t.groupTotal > 1 ? `${t.groupTotal * 700} Birr total` : `${t.totalAmount} Birr`}</span>
+                  {t.paymentMethod && <span>💳 {t.paymentMethod === "cbe" ? "CBE" : "Telebirr"}</span>}
+                  {t.scannedAt && <span>✅ Scanned</span>}
+                </div>
+                {t.paymentScreenshot && <div style={{ marginBottom: 10 }}><div style={{ fontSize: 11, color: C.txD, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Payment Proof</div><img src={t.paymentScreenshot} alt="proof" style={{ width: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 8, border: `1px solid ${C.bd}`, background: C.bg }} /></div>}
+                {t.status === "pending" && <button style={s.confB} onClick={() => { confirm(t.id, t.groupId); notify(`Confirmed: ${t.name}${t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}`); }}>Confirm Payment ✓{t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}</button>}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <div style={s.card}><QRScanner validate={validate} onResult={setScanRes} scanRes={scanRes} /></div>
+      )}
+    </div>
+  );
+}
+
+function QRScanner({ validate, onResult, scanRes }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const detectorRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!scanning || !videoRef.current) return;
+    let frameId;
+    const detect = async () => {
+      if (!videoRef.current || videoRef.current.readyState !== 4) { frameId = requestAnimationFrame(detect); return; }
+      try {
+        if (!detectorRef.current) detectorRef.current = new window.BarcodeDetector({ formats: ["qr_code"] });
+        const barcodes = await detectorRef.current.detect(videoRef.current);
+        if (barcodes.length > 0) {
+          const code = barcodes[0].rawValue;
+          const res = validate(code);
+          onResult(res);
+          setScanning(false);
+          if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+        }
+      } catch (e) {}
+      frameId = requestAnimationFrame(detect);
+    };
+    frameId = requestAnimationFrame(detect);
+    return () => cancelAnimationFrame(frameId);
+  }, [scanning, validate, onResult]);
+
+  const startCamera = async () => {
+    try {
+      setError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setScanning(true);
+    } catch (e) { setError("Camera access denied or not supported"); }
+  };
+
+  const stopCamera = () => {
+    setScanning(false);
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {!scanning && !scanRes && (
+        <button style={{ ...s.btn1, width: "100%" }} onClick={startCamera} className="bh">📷 Start Camera Scan</button>
+      )}
+      {scanning && (
+        <div style={{ position: "relative", background: C.sf, borderRadius: 12, overflow: "hidden", aspectRatio: "9/16", maxHeight: 500 }}>
+          <video ref={videoRef} style={{ width: "100%", height: "100%", objectFit: "cover" }} autoPlay playsInline />
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+            <div style={{ position: "relative", width: 200, height: 200, border: `3px solid ${C.gold}`, borderRadius: 2, boxShadow: `inset 0 0 0 1px ${C.gold}25` }}>
+              <div style={{ position: "absolute", top: 0, left: 0, width: 24, height: 24, borderTop: `3px solid ${C.gold}`, borderLeft: `3px solid ${C.gold}`, borderRadius: 2 }} />
+              <div style={{ position: "absolute", top: 0, right: 0, width: 24, height: 24, borderTop: `3px solid ${C.gold}`, borderRight: `3px solid ${C.gold}`, borderRadius: 2 }} />
+              <div style={{ position: "absolute", bottom: 0, left: 0, width: 24, height: 24, borderBottom: `3px solid ${C.gold}`, borderLeft: `3px solid ${C.gold}`, borderRadius: 2 }} />
+              <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderBottom: `3px solid ${C.gold}`, borderRight: `3px solid ${C.gold}`, borderRadius: 2 }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: C.gold, animation: "scanLine 2s ease-in-out infinite" }} />
+            </div>
+          </div>
+        </div>
+      )}
+      {error && <div style={{ padding: 12, background: C.redD, borderRadius: 8, border: `1px solid ${C.red}`, color: C.red, fontSize: 13 }}>{error}</div>}
+      {scanRes && (
+        <div style={{ ...s.scanB, borderColor: scanRes.ok ? C.grn : C.red, background: scanRes.ok ? C.grnD : C.redD }}>
+          <div style={{ fontSize: 40, color: scanRes.ok ? C.grn : C.red }}>{scanRes.ok ? "✓" : "✗"}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.tx }}>{scanRes.msg}</div>
+          {scanRes.tk && <div style={{ fontSize: 13, color: C.txM, marginTop: 4 }}>{scanRes.tk.name}</div>}
+        </div>
+      )}
+      {(scanning || error) && <button style={{ ...s.btn2, width: "100%" }} onClick={stopCamera}>Stop Scanning</button>}
+      {scanRes && <button style={{ ...s.btn1, width: "100%" }} onClick={() => { onResult(null); startCamera(); }} className="bh">Scan Next</button>}
     </div>
   );
 }
@@ -257,20 +343,18 @@ function Scan({ go, validate, notify }) {
   return (
     <div style={s.pg}><Nav go={go} title="Gate Scanner" /><div style={s.card}>
       <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>📷</div>
-      <h2 style={s.cH}>Validate Ticket</h2><p style={s.cS}>Enter ticket code to verify entry</p>
+      <h2 style={s.cH}>Scan Ticket</h2><p style={s.cS}>Use camera or manual entry to verify entry</p>
+      <QRScanner validate={validate} onResult={setRes} scanRes={res} />
+      <div style={s.divT} />
+      <p style={{ fontSize: 12, color: C.txM, marginBottom: 10 }}>Or enter code manually:</p>
       <Fld label=""><input style={{ ...s.inp, textAlign: "center", fontSize: 17, fontWeight: 600, letterSpacing: 2, fontFamily: "monospace" }} placeholder="LBW-XXXXXX-XXXX" value={inp} onChange={e => setInp(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && scan()} /></Fld>
       <button style={{ ...s.btn1, width: "100%" }} onClick={scan} className="bh">Validate</button>
-      {res && <div style={{ ...s.scanB, borderColor: res.ok ? C.grn : C.red, background: res.ok ? C.grnD : C.redD }}>
-        <div style={{ fontSize: 40, color: res.ok ? C.grn : C.red }}>{res.ok ? "✓" : "✗"}</div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.tx }}>{res.msg}</div>
-        {res.tk && <div style={{ fontSize: 13, color: C.txM, marginTop: 4 }}>{res.tk.name} — ×{res.tk.quantity}</div>}
-      </div>}
-      <button style={{ ...s.btn2, width: "100%", marginTop: 12 }} onClick={() => { setInp(""); setRes(null); }}>Clear & Scan Next</button>
+      <button style={{ ...s.btn2, width: "100%", marginTop: 12 }} onClick={() => { setInp(""); setRes(null); }}>Clear All</button>
     </div></div>
   );
 }
 
-const CSS = `* { box-sizing: border-box; margin: 0; padding: 0; } body { background: ${C.bg}; } .bh { transition: all 0.2s ease; } .bh:hover { transform: translateY(-1px); filter: brightness(1.1); } .bh:active { transform: translateY(0); filter: brightness(0.95); } input:focus { outline: none; border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12); } button { cursor: pointer; border: none; outline: none; } @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } @media print { body * { visibility: hidden; } #printable-ticket, #printable-ticket * { visibility: visible; } #printable-ticket { position: absolute; top: 0; left: 0; } } ::placeholder { color: ${C.txD}; }`;
+const CSS = `* { box-sizing: border-box; margin: 0; padding: 0; } body { background: ${C.bg}; } .bh { transition: all 0.2s ease; } .bh:hover { transform: translateY(-1px); filter: brightness(1.1); } .bh:active { transform: translateY(0); filter: brightness(0.95); } input:focus { outline: none; border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12); } button { cursor: pointer; border: none; outline: none; } @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } @keyframes scanLine { from { top: 0; } to { top: 100%; } } @media print { body * { visibility: hidden; } #printable-ticket, #printable-ticket * { visibility: visible; } #printable-ticket { position: absolute; top: 0; left: 0; } } ::placeholder { color: ${C.txD}; }`;
 
 const s = {
   app: { minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: C.tx, background: C.bg, maxWidth: 480, margin: "0 auto", position: "relative" },
