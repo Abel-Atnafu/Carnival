@@ -60,7 +60,7 @@ function Home({ go }) {
         <div style={s.hDiv}><div style={s.hDivLine} /><div style={s.hDivDia}>◆</div><div style={s.hDivLine} /></div>
         <p style={s.hYear}>2026</p>
         <p style={s.hDesc}>An evening of celebration, community, and unforgettable memories</p>
-        <div style={s.hPrice}><span style={s.hPrL}>ENTRY</span><span style={s.hPrA}>700</span><span style={s.hPrC}>BIRR</span></div>
+        <div style={s.hPrice}><span style={s.hPrL}>ENTRY</span><span style={s.hPrA}>600</span><span style={s.hPrC}>BIRR</span></div>
         <div style={s.hBtns}>
           <button style={s.btn1} onClick={() => go("buy")} className="bh">Purchase Ticket</button>
           <button style={s.btn2} onClick={() => go("myticket")} className="bh">View My Ticket</button>
@@ -98,7 +98,7 @@ function Buy({ go, add, notify, data }) {
     if (!f.paymentMethod) return notify("Select a payment method", "error");
     if (!f.paymentScreenshot) return notify("Upload payment screenshot", "error");
     const groupId = `g-${Date.now()}`;
-    const base = { name: f.name, phone: f.phone, email: f.email, paymentMethod: f.paymentMethod, paymentScreenshot: f.paymentScreenshot, screenshotName: f.screenshotName, status: "pending", createdAt: new Date().toISOString(), groupId, groupTotal: f.quantity, quantity: 1, totalAmount: 700 };
+    const base = { name: f.name, phone: f.phone, email: f.email, paymentMethod: f.paymentMethod, paymentScreenshot: f.paymentScreenshot, screenshotName: f.screenshotName, status: "pending", createdAt: new Date().toISOString(), groupId, groupTotal: f.quantity, quantity: 1, totalAmount: 600 };
     const newTickets = Array.from({ length: f.quantity }, (_, i) => ({ ...base, id: data.nextId + i, ticketIndex: i + 1 }));
     add(newTickets);
     setDone(newTickets.map(tk => ({ ...tk, code: genCode(tk.id) })));
@@ -116,7 +116,7 @@ function Buy({ go, add, notify, data }) {
             <div style={s.iBoxH}><div style={s.iBoxT}>LEBAWI CARNIVAL{done.length > 1 ? ` — Ticket ${i + 1} of ${done.length}` : ""}</div><div style={s.iBoxC}>{tk.code}</div></div>
             <div style={s.iBoxD} />
             <IRow label="Name" value={tk.name} />
-            {i === 0 && <><IRow label="Quantity" value={done.length} /><IRow label="Total" value={`${done.length * 700} Birr`} /><IRow label="Payment" value={tk.paymentMethod === "cbe" ? "CBE" : "Telebirr"} /></>}
+            {i === 0 && <><IRow label="Quantity" value={done.length} /><IRow label="Total" value={`${done.length * 600} Birr`} /><IRow label="Payment" value={tk.paymentMethod === "cbe" ? "CBE" : "Telebirr"} /></>}
             <IRow label="Status" badge="pending" value="Awaiting Verification" />
           </div>
         ))}
@@ -128,7 +128,7 @@ function Buy({ go, add, notify, data }) {
   return (
     <div style={s.pg}><Nav go={go} title="Purchase Ticket" />
       <div style={s.card}>
-        <div style={s.fmH}><div><h2 style={s.fmT}>Lebawi Carnival</h2><p style={s.fmS}>Entry Ticket — 700 Birr</p></div><div style={s.fmBadge}>2026</div></div>
+        <div style={s.fmH}><div><h2 style={s.fmT}>Lebawi Carnival</h2><p style={s.fmS}>Entry Ticket — 600 Birr</p></div><div style={s.fmBadge}>2026</div></div>
         <div style={s.divT} />
         <Fld label="Full Name" req><input style={s.inp} placeholder="Enter your full name" value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></Fld>
         <Fld label="Phone Number" req><input style={s.inp} placeholder="+251 9XX XXX XXXX" value={f.phone} onChange={e => setF({ ...f, phone: e.target.value })} /></Fld>
@@ -136,16 +136,16 @@ function Buy({ go, add, notify, data }) {
         <Fld label="Number of Tickets">
           <div style={s.qR}><button style={s.qB} onClick={() => setF({ ...f, quantity: Math.max(1, f.quantity - 1) })}>−</button><span style={s.qN}>{f.quantity}</span><button style={s.qB} onClick={() => setF({ ...f, quantity: Math.min(10, f.quantity + 1) })}>+</button></div>
         </Fld>
-        <div style={s.totBar}><span style={s.totL}>Total</span><span style={s.totA}>{f.quantity * 700} Birr</span></div>
+        <div style={s.totBar}><span style={s.totL}>Total</span><span style={s.totA}>{f.quantity * 600} Birr</span></div>
 
         <div style={s.secH}><div style={s.secL} /><span style={s.secT}>Payment</span><div style={s.secL} /></div>
-        <p style={s.payH}>Transfer <strong style={{ color: C.gold }}>{f.quantity * 700} Birr</strong> to one of the accounts below, then upload your confirmation screenshot.</p>
+        <p style={s.payH}>Transfer <strong style={{ color: C.gold }}>{f.quantity * 600} Birr</strong> to one of the accounts below, then upload your confirmation screenshot.</p>
 
         <div style={{ ...s.payO, ...(f.paymentMethod === "cbe" ? s.payOA : {}) }} onClick={() => setF({ ...f, paymentMethod: "cbe" })}>
           <div style={s.payOL}><div style={{ ...s.radio, ...(f.paymentMethod === "cbe" ? s.radioA : {}) }}>{f.paymentMethod === "cbe" && <div style={s.radioD} />}</div><div><div style={s.payN}>Commercial Bank of Ethiopia</div><div style={s.payAc}>Account: XXXX XXXX XXXX</div><div style={s.payHo}>Name: — (to be updated)</div></div></div><span style={s.payI}>🏦</span>
         </div>
         <div style={{ ...s.payO, ...(f.paymentMethod === "telebirr" ? s.payOA : {}) }} onClick={() => setF({ ...f, paymentMethod: "telebirr" })}>
-          <div style={s.payOL}><div style={{ ...s.radio, ...(f.paymentMethod === "telebirr" ? s.radioA : {}) }}>{f.paymentMethod === "telebirr" && <div style={s.radioD} />}</div><div><div style={s.payN}>Telebirr</div><div style={s.payAc}>Phone: XXXX XXX XXXX</div><div style={s.payHo}>Name: — (to be updated)</div></div></div><span style={s.payI}>📱</span>
+          <div style={s.payOL}><div style={{ ...s.radio, ...(f.paymentMethod === "telebirr" ? s.radioA : {}) }}>{f.paymentMethod === "telebirr" && <div style={s.radioD} />}</div><div><div style={s.payN}>Telebirr</div><div style={s.payAc}>Phone: +251 967 050188</div><div style={s.payHo}>Send payment to this number</div></div></div><span style={s.payI}>📱</span>
         </div>
 
         <div style={s.secH}><div style={s.secL} /><span style={s.secT}>Proof of Payment</span><div style={s.secL} /></div>
@@ -218,29 +218,63 @@ function Admin({ go, data, confirm, auth, setAuth, notify }) {
   const rev = conf.reduce((a, t) => a + t.totalAmount, 0), qty = tks.reduce((a, t) => a + t.quantity, 0);
   const list = fl === "all" ? tks : fl === "confirmed" ? conf : fl === "pending" ? pend : scnd;
 
+  // Build buyers summary: one entry per unique buyer (keyed by phone)
+  const buyersMap = {};
+  tks.forEach(t => {
+    const key = t.phone;
+    if (!buyersMap[key]) buyersMap[key] = { name: t.name, phone: t.phone, tickets: 0, confirmed: 0, pending: 0, totalPaid: 0, paymentMethod: t.paymentMethod };
+    buyersMap[key].tickets += 1;
+    if (t.status === "confirmed") { buyersMap[key].confirmed += 1; buyersMap[key].totalPaid += t.totalAmount; }
+    if (t.status === "pending") buyersMap[key].pending += 1;
+  });
+  const buyers = Object.values(buyersMap).sort((a, b) => b.tickets - a.tickets);
+
   return (
     <div style={s.pg}><Nav go={go} title="Dashboard" />
       <div style={s.statsR}><Stat value={qty} label="Tickets" /><Stat value={conf.length} label="Confirmed" color={C.grn} /><Stat value={pend.length} label="Pending" color={C.yel} /><Stat value={rev.toLocaleString()} label="Birr" color={C.gold} /></div>
-      <div style={s.flR}>{["all", "confirmed", "pending", "scanned"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => setFl(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {list.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No tickets yet</div> : list.slice().reverse().map(t => (
-          <div key={t.id} style={s.aCard}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-              <div><div style={{ fontWeight: 700, fontSize: 15, color: C.tx }}>{t.name}</div><div style={{ fontSize: 12, fontFamily: "monospace", color: C.gold, marginTop: 2 }}>{genCode(t.id)}</div></div>
-              <span style={{ ...s.badge, ...(t.status === "confirmed" ? s.bGrn : s.bYel) }}>{t.status}</span>
+      <div style={s.flR}>{["all", "confirmed", "pending", "scanned", "buyers"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => setFl(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
+
+      {fl === "buyers" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {buyers.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No buyers yet</div> : buyers.map(b => (
+            <div key={b.phone} style={s.aCard}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div><div style={{ fontWeight: 700, fontSize: 15, color: C.tx }}>{b.name}</div><div style={{ fontSize: 12, color: C.txM, marginTop: 2 }}>📱 {b.phone}</div></div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 800, color: C.gold }}>{b.tickets}</div>
+                  <div style={{ fontSize: 10, color: C.txD, textTransform: "uppercase", letterSpacing: 0.5 }}>ticket{b.tickets !== 1 ? "s" : ""}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {b.confirmed > 0 && <span style={{ ...s.badge, ...s.bGrn }}>{b.confirmed} confirmed</span>}
+                {b.pending > 0 && <span style={{ ...s.badge, ...s.bYel }}>{b.pending} pending</span>}
+                {b.totalPaid > 0 && <span style={{ ...s.badge, background: "rgba(201,168,76,0.12)", color: C.gold }}>{b.totalPaid} Birr paid</span>}
+                {b.paymentMethod && <span style={{ ...s.badge, background: C.sf, color: C.txM }}>{b.paymentMethod === "cbe" ? "CBE" : "Telebirr"}</span>}
+              </div>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 13, color: C.txM, marginBottom: 8 }}>
-              <span>📱 {t.phone}</span>
-              <span>🎟 {t.groupTotal > 1 ? `${t.ticketIndex}/${t.groupTotal}` : "×1"}</span>
-              <span>💰 {t.groupTotal > 1 ? `${t.groupTotal * 700} Birr total` : `${t.totalAmount} Birr`}</span>
-              {t.paymentMethod && <span>💳 {t.paymentMethod === "cbe" ? "CBE" : "Telebirr"}</span>}
-              {t.scannedAt && <span>✅ Scanned</span>}
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {list.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No tickets yet</div> : list.slice().reverse().map(t => (
+            <div key={t.id} style={s.aCard}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                <div><div style={{ fontWeight: 700, fontSize: 15, color: C.tx }}>{t.name}</div><div style={{ fontSize: 12, fontFamily: "monospace", color: C.gold, marginTop: 2 }}>{genCode(t.id)}</div></div>
+                <span style={{ ...s.badge, ...(t.status === "confirmed" ? s.bGrn : s.bYel) }}>{t.status}</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 13, color: C.txM, marginBottom: 8 }}>
+                <span>📱 {t.phone}</span>
+                <span>🎟 {t.groupTotal > 1 ? `${t.ticketIndex}/${t.groupTotal}` : "×1"}</span>
+                <span>💰 {t.groupTotal > 1 ? `${t.groupTotal * 600} Birr total` : `${t.totalAmount} Birr`}</span>
+                {t.paymentMethod && <span>💳 {t.paymentMethod === "cbe" ? "CBE" : "Telebirr"}</span>}
+                {t.scannedAt && <span>✅ Scanned</span>}
+              </div>
+              {t.paymentScreenshot && <div style={{ marginBottom: 10 }}><div style={{ fontSize: 11, color: C.txD, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Payment Proof</div><img src={t.paymentScreenshot} alt="proof" style={{ width: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 8, border: `1px solid ${C.bd}`, background: C.bg }} /></div>}
+              {t.status === "pending" && <button style={s.confB} onClick={() => { confirm(t.id, t.groupId); notify(`Confirmed: ${t.name}${t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}`); }}>Confirm Payment ✓{t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}</button>}
             </div>
-            {t.paymentScreenshot && <div style={{ marginBottom: 10 }}><div style={{ fontSize: 11, color: C.txD, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Payment Proof</div><img src={t.paymentScreenshot} alt="proof" style={{ width: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 8, border: `1px solid ${C.bd}`, background: C.bg }} /></div>}
-            {t.status === "pending" && <button style={s.confB} onClick={() => { confirm(t.id, t.groupId); notify(`Confirmed: ${t.name}${t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}`); }}>Confirm Payment ✓{t.groupTotal > 1 ? ` (${t.groupTotal} tickets)` : ""}</button>}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
