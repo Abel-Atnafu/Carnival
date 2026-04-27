@@ -42,7 +42,7 @@ export default function App() {
       {notif && <div style={{ ...s.notif, background: notif.t === "success" ? C.grn : C.red, color: C.bg }}>{notif.m}</div>}
       {pg === "home" && <Home go={setPg} />}
       {pg === "buy" && <Buy go={setPg} add={addTickets} notify={notify} data={data} />}
-      {pg === "admin" && <Admin go={setPg} data={data} confirm={confirmPay} auth={auth} setAuth={setAuth} notify={notify} />}
+      {pg === "admin" && <Admin go={setPg} data={data} confirm={confirmPay} validate={validate} auth={auth} setAuth={setAuth} notify={notify} />}
       {pg === "scan" && <Scan go={setPg} validate={validate} notify={notify} />}
       {pg === "myticket" && <MyTicket go={setPg} data={data} notify={notify} />}
     </div>
@@ -200,9 +200,10 @@ function MyTicket({ go, data, notify }) {
   );
 }
 
-function Admin({ go, data, confirm, auth, setAuth, notify }) {
+function Admin({ go, data, confirm, validate, auth, setAuth, notify }) {
   const [pin, setPin] = useState("");
   const [fl, setFl] = useState("all");
+  const [scanRes, setScanRes] = useState(null);
   const PIN = "2026";
   if (!auth) return (
     <div style={s.pg}><Nav go={go} title="Admin" /><div style={s.card}>
@@ -232,9 +233,26 @@ function Admin({ go, data, confirm, auth, setAuth, notify }) {
   return (
     <div style={s.pg}><Nav go={go} title="Dashboard" />
       <div style={s.statsR}><Stat value={qty} label="Tickets" /><Stat value={conf.length} label="Confirmed" color={C.grn} /><Stat value={pend.length} label="Pending" color={C.yel} /><Stat value={rev.toLocaleString()} label="Birr" color={C.gold} /></div>
-      <div style={s.flR}>{["all", "confirmed", "pending", "scanned", "buyers"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => setFl(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
+      <div style={s.flR}>{["all", "confirmed", "pending", "scanned", "buyers", "scan"].map(f => <button key={f} style={{ ...s.flB, ...(fl === f ? s.flA : {}) }} onClick={() => { setFl(f); setScanRes(null); }}>{f === "scan" ? "📷 Scan" : f.charAt(0).toUpperCase() + f.slice(1)}</button>)}</div>
 
-      {fl === "buyers" ? (
+      {fl === "scan" ? (
+        <div style={s.card}>
+          <h2 style={{ ...s.cH, marginBottom: 6 }}>Scan Ticket QR</h2>
+          <p style={{ ...s.cS, marginBottom: 16 }}>Point the camera at a ticket QR code to validate entry</p>
+          {scanRes ? (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ ...s.scanB, borderColor: scanRes.ok ? C.grn : C.red, background: scanRes.ok ? C.grnD : C.redD, marginTop: 0, marginBottom: 18 }}>
+                <div style={{ fontSize: 52, color: scanRes.ok ? C.grn : C.red, marginBottom: 4 }}>{scanRes.ok ? "✓" : "✗"}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: C.tx, marginBottom: 4 }}>{scanRes.msg}</div>
+                {scanRes.tk && <div style={{ fontSize: 13, color: C.txM }}>{scanRes.tk.name}</div>}
+              </div>
+              <button style={{ ...s.btn1, width: "100%" }} onClick={() => setScanRes(null)} className="bh">📷  Scan Next Ticket</button>
+            </div>
+          ) : (
+            <QRScanner onScan={(code) => { const r = validate(code); setScanRes(r); if (r.ok) notify("Entry approved!"); }} onClose={() => setFl("all")} />
+          )}
+        </div>
+      ) : fl === "buyers" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {buyers.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: C.txD }}>No buyers yet</div> : buyers.map(b => (
             <div key={b.phone} style={s.aCard}>
@@ -279,27 +297,125 @@ function Admin({ go, data, confirm, auth, setAuth, notify }) {
   );
 }
 
-function Scan({ go, validate, notify }) {
-  const [inp, setInp] = useState("");
-  const [res, setRes] = useState(null);
-  const scan = () => { if (!inp.trim()) return; const r = validate(inp.trim()); setRes(r); if (r.ok) notify("Entry approved!"); };
+function QRScanner({ onScan, onClose }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const timerRef = useRef(null);
+  const activeRef = useRef(false);
+  const [ready, setReady] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const stopCamera = () => {
+    activeRef.current = false;
+    clearTimeout(timerRef.current);
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+  };
+
+  useEffect(() => {
+    if (!('BarcodeDetector' in window)) { setErr("QR scanning requires Chrome on Android or desktop. Use manual entry below."); return; }
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setReady(true);
+        activeRef.current = true;
+        const detector = new BarcodeDetector({ formats: ["qr_code"] });
+        const tick = async () => {
+          if (!activeRef.current) return;
+          try {
+            if (videoRef.current?.readyState >= 2) {
+              const codes = await detector.detect(videoRef.current);
+              if (codes.length > 0) { stopCamera(); onScan(codes[0].rawValue); return; }
+            }
+          } catch {}
+          timerRef.current = setTimeout(tick, 250);
+        };
+        tick();
+      } catch { setErr("Camera access denied. Use manual entry below."); }
+    })();
+    return stopCamera;
+  }, []);
+
   return (
-    <div style={s.pg}><Nav go={go} title="Gate Scanner" /><div style={s.card}>
-      <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>📷</div>
-      <h2 style={s.cH}>Validate Ticket</h2><p style={s.cS}>Enter ticket code to verify entry</p>
-      <Fld label=""><input style={{ ...s.inp, textAlign: "center", fontSize: 17, fontWeight: 600, letterSpacing: 2, fontFamily: "monospace" }} placeholder="LBW-XXXXXX-XXXX" value={inp} onChange={e => setInp(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && scan()} /></Fld>
-      <button style={{ ...s.btn1, width: "100%" }} onClick={scan} className="bh">Validate</button>
-      {res && <div style={{ ...s.scanB, borderColor: res.ok ? C.grn : C.red, background: res.ok ? C.grnD : C.redD }}>
-        <div style={{ fontSize: 40, color: res.ok ? C.grn : C.red }}>{res.ok ? "✓" : "✗"}</div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.tx }}>{res.msg}</div>
-        {res.tk && <div style={{ fontSize: 13, color: C.txM, marginTop: 4 }}>{res.tk.name} — ×{res.tk.quantity}</div>}
-      </div>}
-      <button style={{ ...s.btn2, width: "100%", marginTop: 12 }} onClick={() => { setInp(""); setRes(null); }}>Clear & Scan Next</button>
-    </div></div>
+    <div>
+      {err
+        ? <div style={{ padding: 14, background: C.redD, borderRadius: 8, color: C.red, fontSize: 13, marginBottom: 14, textAlign: "center", lineHeight: 1.6 }}>{err}</div>
+        : (
+          <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "#000", marginBottom: 12 }}>
+            <video ref={videoRef} style={{ width: "100%", display: "block", maxHeight: 300, objectFit: "cover" }} playsInline muted />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+              <div style={{ width: 190, height: 190, position: "relative" }}>
+                {[["top","left"],["top","right"],["bottom","left"],["bottom","right"]].map(([v,h]) => (
+                  <div key={v+h} style={{ position: "absolute", [v]: 0, [h]: 0, width: 26, height: 26, borderTop: v === "top" ? `3px solid ${C.gold}` : "none", borderBottom: v === "bottom" ? `3px solid ${C.gold}` : "none", borderLeft: h === "left" ? `3px solid ${C.gold}` : "none", borderRight: h === "right" ? `3px solid ${C.gold}` : "none", borderRadius: v === "top" && h === "left" ? "4px 0 0 0" : v === "top" && h === "right" ? "0 4px 0 0" : v === "bottom" && h === "left" ? "0 0 0 4px" : "0 0 4px 0" }} />
+                ))}
+                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`, opacity: 0.7, transform: "translateY(-50%)", animation: "scanLine 2s ease-in-out infinite" }} />
+              </div>
+            </div>
+            {!ready && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#aaa", fontSize: 13 }}>Starting camera…</div>}
+          </div>
+        )
+      }
+      <button style={{ ...s.btn2, width: "100%" }} onClick={() => { stopCamera(); onClose(); }}>✕  Cancel</button>
+    </div>
   );
 }
 
-const CSS = `* { box-sizing: border-box; margin: 0; padding: 0; } body { background: ${C.bg}; } .bh { transition: all 0.2s ease; } .bh:hover { transform: translateY(-1px); filter: brightness(1.1); } .bh:active { transform: translateY(0); filter: brightness(0.95); } input:focus { outline: none; border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12); } button { cursor: pointer; border: none; outline: none; } @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } @media print { body * { visibility: hidden; } #printable-ticket, #printable-ticket * { visibility: visible; } #printable-ticket { position: absolute; top: 0; left: 0; } } ::placeholder { color: ${C.txD}; }`;
+function Scan({ go, validate, notify }) {
+  const [inp, setInp] = useState("");
+  const [res, setRes] = useState(null);
+  const [camMode, setCamMode] = useState(false);
+
+  const handleScan = (code) => {
+    setCamMode(false);
+    setInp(code);
+    const r = validate(code);
+    setRes(r);
+    if (r.ok) notify("Entry approved!");
+  };
+
+  const handleManual = () => {
+    if (!inp.trim()) return;
+    const r = validate(inp.trim());
+    setRes(r);
+    if (r.ok) notify("Entry approved!");
+  };
+
+  const reset = () => { setInp(""); setRes(null); setCamMode(false); };
+
+  return (
+    <div style={s.pg}><Nav go={go} title="Gate Scanner" />
+      <div style={s.card}>
+        {res ? (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ ...s.scanB, borderColor: res.ok ? C.grn : C.red, background: res.ok ? C.grnD : C.redD, marginTop: 0, marginBottom: 18 }}>
+              <div style={{ fontSize: 52, color: res.ok ? C.grn : C.red, marginBottom: 4 }}>{res.ok ? "✓" : "✗"}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.tx, marginBottom: 4 }}>{res.msg}</div>
+              {res.tk && <div style={{ fontSize: 13, color: C.txM }}>{res.tk.name}</div>}
+            </div>
+            <button style={{ ...s.btn1, width: "100%", marginBottom: 10 }} onClick={reset} className="bh">📷  Scan Next Ticket</button>
+            <button style={{ ...s.btn2, width: "100%" }} onClick={reset}>Clear</button>
+          </div>
+        ) : camMode ? (
+          <QRScanner onScan={handleScan} onClose={() => setCamMode(false)} />
+        ) : (
+          <>
+            <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>📷</div>
+            <h2 style={s.cH}>Validate Ticket</h2>
+            <p style={s.cS}>Scan QR code or enter ticket code manually</p>
+            <button style={{ ...s.btn1, width: "100%", marginBottom: 14 }} onClick={() => setCamMode(true)} className="bh">📷  Scan QR Code</button>
+            <div style={s.secH}><div style={s.secL} /><span style={s.secT}>or enter manually</span><div style={s.secL} /></div>
+            <Fld label=""><input style={{ ...s.inp, textAlign: "center", fontSize: 17, fontWeight: 600, letterSpacing: 2, fontFamily: "monospace" }} placeholder="LBW-XXXXXX-XXXX" value={inp} onChange={e => setInp(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && handleManual()} /></Fld>
+            <button style={{ ...s.btn2, width: "100%" }} onClick={handleManual} className="bh">Validate Code</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const CSS = `* { box-sizing: border-box; margin: 0; padding: 0; } body { background: ${C.bg}; } .bh { transition: all 0.2s ease; } .bh:hover { transform: translateY(-1px); filter: brightness(1.1); } .bh:active { transform: translateY(0); filter: brightness(0.95); } input:focus { outline: none; border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.12); } button { cursor: pointer; border: none; outline: none; } @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } @keyframes scanLine { 0%,100% { top: 10%; opacity: 0.4; } 50% { top: 90%; opacity: 1; } } @media print { body * { visibility: hidden; } #printable-ticket, #printable-ticket * { visibility: visible; } #printable-ticket { position: absolute; top: 0; left: 0; } } ::placeholder { color: ${C.txD}; }`;
 
 const s = {
   app: { minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: C.tx, background: C.bg, maxWidth: 480, margin: "0 auto", position: "relative" },
